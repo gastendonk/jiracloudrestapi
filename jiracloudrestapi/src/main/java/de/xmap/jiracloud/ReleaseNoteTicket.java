@@ -3,20 +3,20 @@ package de.xmap.jiracloud;
 import java.util.List;
 import java.util.Map;
 
-import de.xmap.jiracloud.JiraCloudAccess.Issue;
+import de.xmap.jiracloud.JiraCloudAccess.IssueAccess;
 
 /**
  * RNT: release note title, RNS: release note summary, RND: release note details
  */
 public class ReleaseNoteTicket {
-    private final Issue issue;
+    private final IssueAccess issue;
     
     public static List<ReleaseNoteTicket> load(JiraCloudAccess jira, ReleaseTicket releaseTicket) {
         String jql = "issuetype=\"Release note ticket\" AND \"Release note page Ids[Labels]\" in (\"" + releaseTicket.getPageId() + "\")";
         return jira.loadIssues(jql, issue -> new ReleaseNoteTicket(issue));
     }
     
-    public ReleaseNoteTicket(Issue issue) {
+    public ReleaseNoteTicket(IssueAccess issue) {
         this.issue = issue;
     }
 

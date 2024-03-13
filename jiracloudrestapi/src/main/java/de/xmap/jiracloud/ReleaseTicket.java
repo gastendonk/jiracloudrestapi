@@ -2,17 +2,17 @@ package de.xmap.jiracloud;
 
 import java.util.List;
 
-import de.xmap.jiracloud.JiraCloudAccess.Issue;
+import de.xmap.jiracloud.JiraCloudAccess.IssueAccess;
 
 public class ReleaseTicket {
-    private final Issue issue;
+    private final IssueAccess issue;
     
     public static List<ReleaseTicket> load(JiraCloudAccess jira, String project) {
         String jql = "issuetype=\"Release\" and project=\"" + project + "\"";
         return jira.loadIssues(jql, issue -> new ReleaseTicket(issue));
     }
     
-    public ReleaseTicket(Issue issue) {
+    public ReleaseTicket(IssueAccess issue) {
         this.issue = issue;
     }
 
