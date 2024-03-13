@@ -16,3 +16,7 @@ dependencies {
 repositories {
     mavenCentral()
 }
+
+java {
+    withSourcesJar()
+}
