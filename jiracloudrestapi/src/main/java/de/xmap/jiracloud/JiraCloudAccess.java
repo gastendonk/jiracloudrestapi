@@ -60,7 +60,9 @@ public class JiraCloudAccess {
     private <T> List<T> loadIssues(String jql, String queryExtension, Function<IssueAccess, T> creator) {
         List<T> ret = new ArrayList<>();
         HttpResponse<JsonNode> response = get("/rest/api/3/search?jql=" + urlEncode(jql, "") + queryExtension);
-        // TODO res.status
+        if (response.getStatus() >= 300) {
+            throw new RuntimeException("Error loading issues. Status is " + response.getStatus());
+        }
         JsonNode json = response.getBody();
         if (debugMode) {
             System.out.println(json.toPrettyString());
@@ -91,9 +93,11 @@ public class JiraCloudAccess {
     }
 
     byte[] loadImage(String src) {
-        HttpResponse<byte[]> res = Unirest.get(url + src).header("Authorization", auth).asBytes();
-        // TODO status
-        return res.getBody();
+        HttpResponse<byte[]> response = Unirest.get(url + src).header("Authorization", auth).asBytes();
+        if (response.getStatus() >= 300) {
+            throw new RuntimeException("Error loading image. Status is " + response.getStatus());
+        }
+        return response.getBody();
     }
 
     public class IssueAccess {
