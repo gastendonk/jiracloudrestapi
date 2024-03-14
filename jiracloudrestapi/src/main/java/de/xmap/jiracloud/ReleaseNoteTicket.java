@@ -1,13 +1,9 @@
 package de.xmap.jiracloud;
 
 import java.util.List;
-import java.util.Map;
 
 import de.xmap.jiracloud.JiraCloudAccess.IssueAccess;
 
-/**
- * RNT: release note title, RNS: release note summary, RND: release note details
- */
 public class ReleaseNoteTicket {
     private final IssueAccess issue;
     
@@ -26,42 +22,35 @@ public class ReleaseNoteTicket {
     public String getKey() {
         return issue.text("/key");
     }
-    
-    public String getRNT_de() {
-        return issue.text("/fields/customfield_10077");
-    }
-    public String getRNT_en() {
+
+    /**
+     * @param lang "de" or "en"
+     * @return release note title
+     */
+    public String getRNT(String lang) {
+        if ("de".equals(lang)) {
+            return issue.text("/fields/customfield_10077");
+        }
         return issue.text("/fields/customfield_10078");
     }
-    
-    public String getRNS_de() {
-        return issue.doc("/fields/customfield_10079");
-    }
-    public String getRNS_en() {
-        return issue.doc("/fields/customfield_10080");
-    }
-    
-    public String getRND_de() {
-        return issue.doc("/fields/customfield_10081");
-    }
-    public String getRND_en() {
-        return issue.doc("/fields/customfield_10082");
-    }
-    
-    public Map<String, byte[]> getRND_de_images() {
-        return issue.images("/fields/customfield_10081");
-    }
-    public Map<String, byte[]> getRND_en_images() {
-        return issue.images("/fields/customfield_10082");
+
+    /**
+     * @return release note summary
+     */
+    public DocFieldML getRNS() {
+        return new DocFieldML(issue, "/fields/customfield_10079", "/fields/customfield_10080");
     }
 
-    public Map<String, byte[]> getRNS_de_images() {
-        return issue.images("/fields/customfield_10079");
+    /**
+     * @return release note details
+     */
+    public DocFieldML getRND() {
+        return new DocFieldML(issue, "/fields/customfield_10081", "/fields/customfield_10082");
     }
-    public Map<String, byte[]> getRNS_en_images() {
-        return issue.images("/fields/customfield_10080");
-    }
-
+    
+    /**
+     * @return linked issue of type "release for"
+     */
     public String getReleaseFor() {
         List<String> ret = issue.getLinkedOutwardIssue("release for");
         return ret.isEmpty() ? null : ret.get(0);
