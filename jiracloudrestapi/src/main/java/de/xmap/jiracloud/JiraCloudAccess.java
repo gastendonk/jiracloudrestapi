@@ -177,6 +177,26 @@ public class JiraCloudAccess {
             }
             return images;
         }
+        
+        /**
+         * Get linked issues
+         * @param outwardType -
+         * @return ticket numbers
+         */
+        public List<String> getLinkedOutwardIssue(String outwardType) {
+            List<String> ret = new ArrayList<>();
+            for (Object i : (JSONArray) jo.query("/fields/issuelinks")) {
+                JSONObject o = (JSONObject) i;
+                if (outwardType.equals(o.query("/type/outward"))) {
+                    ret.add((String) o.query("/outwardIssue/key"));
+                }
+            }
+            return ret;
+        }
+
+        public JSONObject getJSONObject() {
+            return jo;
+        }
     }
     
     // =================================================

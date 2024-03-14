@@ -54,4 +54,20 @@ public class ReleaseNoteTicket {
     public Map<String, byte[]> getRND_en_images() {
         return issue.images("/fields/customfield_10082");
     }
+
+    public Map<String, byte[]> getRNS_de_images() {
+        return issue.images("/fields/customfield_10079");
+    }
+    public Map<String, byte[]> getRNS_en_images() {
+        return issue.images("/fields/customfield_10080");
+    }
+
+    public String getReleaseFor() {
+        List<String> ret = issue.getLinkedOutwardIssue("release for");
+        return ret.isEmpty() ? null : ret.get(0);
+    }
+
+    public IssueAccess getIssueAccess() {
+        return issue;
+    }
 }
