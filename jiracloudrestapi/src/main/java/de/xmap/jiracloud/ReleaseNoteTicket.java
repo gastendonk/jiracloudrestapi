@@ -11,8 +11,8 @@ import de.xmap.jiracloud.JiraCloudAccess.IssueAccess;
 public class ReleaseNoteTicket {
     private final IssueAccess issue;
     
-    public static List<ReleaseNoteTicket> load(JiraCloudAccess jira, ReleaseTicket releaseTicket) {
-        String jql = "issuetype=\"Release note ticket\" AND \"Release note page Ids[Labels]\" in (\"" + releaseTicket.getPageId() + "\")";
+    public static List<ReleaseNoteTicket> load(JiraCloudAccess jira, String pageId) {
+        String jql = "issuetype=\"Release note ticket\" AND \"Release note page Ids[Labels]\" in (\"" + pageId + "\")";
         return jira.loadIssues(jql, issue -> new ReleaseNoteTicket(issue));
     }
     
