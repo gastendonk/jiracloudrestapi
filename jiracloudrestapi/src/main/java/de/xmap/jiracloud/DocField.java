@@ -18,7 +18,7 @@ public class DocField {
     }
 
     public String getText() {
-        return issue.text(path);
+        return issue.doc(path);
     }
 
     public Map<String, byte[]> getImages() {
