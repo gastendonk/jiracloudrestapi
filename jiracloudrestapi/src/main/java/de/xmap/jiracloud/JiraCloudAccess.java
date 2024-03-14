@@ -30,7 +30,8 @@ import kong.unirest.json.JSONObject;
 public class JiraCloudAccess {
     private final String url;
     private final String auth;
-
+    private boolean debugMode = false;
+    
     /**
      * @param mail mail address for Jira Cloud login
      * @param token token for Jira Cloud login
@@ -58,14 +59,24 @@ public class JiraCloudAccess {
 
     private <T> List<T> loadIssues(String jql, String queryExtension, Function<IssueAccess, T> creator) {
         List<T> ret = new ArrayList<>();
-        JsonNode json = Unirest.get(url + "/rest/api/3/search?jql=" + urlEncode(jql, "") + queryExtension) //
-                .header("Accept", "application/json") //
-                .header("Authorization", auth) //
-                .asJson().getBody();
+        HttpResponse<JsonNode> response = get("/rest/api/3/search?jql=" + urlEncode(jql, "") + queryExtension);
+        // TODO res.status
+        JsonNode json = response.getBody();
+        if (debugMode) {
+            System.out.println(json.toPrettyString());
+        }
         for (Object issue0 : json.getObject().getJSONArray("issues")) {
             ret.add(creator.apply(new IssueAccess((JSONObject) issue0)));
         }
         return ret;
+    }
+    
+    /**
+     * @param path -
+     * @return JSON
+     */
+    public HttpResponse<JsonNode> get(String path) {
+        return Unirest.get(url + path).header("Accept", "application/json").header("Authorization", auth).asJson();
     }
 
     public static String urlEncode(String text, String fallback) {
@@ -80,7 +91,9 @@ public class JiraCloudAccess {
     }
 
     byte[] loadImage(String src) {
-        return Unirest.get(url + src).header("Authorization", auth).asBytes().getBody();
+        HttpResponse<byte[]> res = Unirest.get(url + src).header("Authorization", auth).asBytes();
+        // TODO status
+        return res.getBody();
     }
 
     public class IssueAccess {
@@ -345,5 +358,13 @@ public class JiraCloudAccess {
             System.err.println(response.getBody().toPrettyString());
             throw new RuntimeException("Status is " + response.getStatus() + ". See log.");
         }
+    }
+
+    public boolean isDebugMode() {
+        return debugMode;
+    }
+
+    public void setDebugMode(boolean debugMode) {
+        this.debugMode = debugMode;
     }
 }
