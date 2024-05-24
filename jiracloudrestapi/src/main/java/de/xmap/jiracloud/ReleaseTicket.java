@@ -21,11 +21,11 @@ public class ReleaseTicket {
     }
     
     public String getPageId() {
-        return issue.text("/fields/customfield_10084");
+        return issue.text("/fields/customfield_10066"); // Main page ID (EN)
     }
     
     public String getTargetVersion() {
-        return issue.text("/fields/customfield_10101/name");
+        return issue.text("/fields/customfield_10073/name"); // Target release version
     }
     
     public boolean isRelevant() {

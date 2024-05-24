@@ -29,23 +29,23 @@ public class ReleaseNoteTicket {
      */
     public String getRNT(String lang) {
         if ("de".equals(lang)) {
-            return issue.text("/fields/customfield_10077");
+            return issue.text("/fields/customfield_10055");
         }
-        return issue.text("/fields/customfield_10078");
+        return issue.text("/fields/customfield_10056");
     }
 
     /**
      * @return release note summary
      */
     public DocFieldML getRNS() {
-        return new DocFieldML(issue, "/fields/customfield_10079", "/fields/customfield_10080");
+        return new DocFieldML(issue, "/fields/customfield_10057", "/fields/customfield_10058");
     }
 
     /**
      * @return release note details
      */
     public DocFieldML getRND() {
-        return new DocFieldML(issue, "/fields/customfield_10081", "/fields/customfield_10082");
+        return new DocFieldML(issue, "/fields/customfield_10059", "/fields/customfield_10060");
     }
     
     /**
