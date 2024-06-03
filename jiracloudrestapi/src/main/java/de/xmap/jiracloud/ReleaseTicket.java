@@ -21,9 +21,14 @@ public class ReleaseTicket {
     }
     
     public String getPageId() {
+        return issue.text("/fields/customfield_10065"); // Main page ID
+    }
+
+    // falls das benötigt wird
+    public String getPageIdEN() {
         return issue.text("/fields/customfield_10066"); // Main page ID (EN)
     }
-    
+
     public String getTargetVersion() {
         return issue.text("/fields/customfield_10073/name"); // Target release version
     }

@@ -49,6 +49,7 @@ public class ReleaseNoteTicket {
     }
     
     /**
+     * Das eigentliche Ticket (i.d.R. vom Typ Story oder Bug)
      * @return linked issue of type "release for"
      */
     public String getReleaseFor() {
