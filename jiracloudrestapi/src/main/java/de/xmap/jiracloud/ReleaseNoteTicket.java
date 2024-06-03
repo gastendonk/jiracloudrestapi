@@ -8,7 +8,7 @@ public class ReleaseNoteTicket {
     private final IssueAccess issue;
     
     public static List<ReleaseNoteTicket> load(JiraCloudAccess jira, String pageId) {
-        String jql = "issuetype=\"Release note ticket\" AND \"Release note page Ids[Labels]\" in (\"" + pageId + "\")";
+        String jql = "issuetype=\"Release note ticket\" AND \"Release notes page Ids[Labels]\" in (\"" + pageId + "\")";
         return jira.loadIssues(jql, issue -> new ReleaseNoteTicket(issue));
     }
     
