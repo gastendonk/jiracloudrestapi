@@ -301,9 +301,14 @@ public class JiraCloudAccess {
                 .body(body)
                 .asJson();
         if (response.getStatus() >= 300) {
-            // TODO "already exists" erkennen -> return false
-            System.err.println(response.getBody().toPrettyString());
-            throw new RuntimeException("Status is " + response.getStatus() + ". See log.");
+            String msg = response.getBody().toPrettyString();
+            if (msg.contains("already exists")) {
+                System.out.println(msg);
+                return false;
+            } else {
+                System.err.println(msg);
+                throw new RuntimeException("Status is " + response.getStatus() + ". See log.");
+            }
         }        
         return true;
     }
