@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import de.xmap.jiracloud.JiraCloudAccess.IssueAccess;
+import kong.unirest.json.JSONPointerException;
 
 /**
  * Multi Language DocField
@@ -21,13 +22,17 @@ public class DocFieldML {
 
     /**
      * @param lang "de", "en"
-     * @return DocField
+     * @return DocField, null if it does not exist
      */
     public DocField get(String lang) {
         return map.get(lang);
     }
     
     public void set(String lang, DocField docField) {
-        map.put(lang, docField);
+    	try {
+			docField.isPlainText(); // check if exist
+			map.put(lang, docField);
+		} catch (JSONPointerException e) {
+		}
     }
 }
