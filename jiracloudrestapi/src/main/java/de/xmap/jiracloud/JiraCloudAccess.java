@@ -134,6 +134,15 @@ public class JiraCloudAccess {
         }
         
         /**
+         * @param path plain text field
+         * @return same as text() but returns null instead of ""
+         */
+        public String textne(String path) {
+            String ret = text(path);
+            return ret != null && ret.isBlank() ? null : ret;
+        }
+        
+        /**
          * @param path content field
          * @return plain text or HTML
          */
