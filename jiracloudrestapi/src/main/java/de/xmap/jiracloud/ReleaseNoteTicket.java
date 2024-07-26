@@ -54,11 +54,35 @@ public class ReleaseNoteTicket {
     
     /**
      * Das eigentliche Ticket (i.d.R. vom Typ Story oder Bug)
-     * @return linked issue of type "release for"
+     * @return linked issue of type "release for" (ticket number)
      */
     public String getReleaseFor() {
         List<String> ret = issue.getLinkedOutwardIssue("release for");
         return ret.isEmpty() ? null : ret.get(0);
+    }
+    
+    /**
+     * @param jira JiraCloudAccess
+     * @return issue type of getReleaseFor() ticket, e.g. "Bug", null if issue type could not be determined
+     */
+    public String getReleaseFor_issueType(JiraCloudAccess jira) {
+        String releaseFor = getReleaseFor();
+        if (releaseFor == null || releaseFor.isBlank()) {
+            return null;
+        }
+        List<IssueAccess> issues;
+        try {
+            issues = jira.loadIssues("key=" + releaseFor, i -> i);
+        } catch (Exception e) { // typically "Error loading issues. Status is 400" if ticket isn't found
+            return null;
+        }
+        if (issues.size() == 1) {
+            try {
+                return issues.get(0).text("/fields/issuetype/name");
+            } catch (Exception ignore) {
+            }
+        }
+        return null;
     }
 
     public IssueAccess getIssueAccess() {
