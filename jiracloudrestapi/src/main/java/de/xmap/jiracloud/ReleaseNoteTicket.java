@@ -6,6 +6,8 @@ import de.xmap.jiracloud.JiraCloudAccess.IssueAccess;
 
 public class ReleaseNoteTicket {
     private final IssueAccess issue;
+    private String releaseFor_issueType;
+    private String sort;
     
     public static List<ReleaseNoteTicket> load(JiraCloudAccess jira, String pageId) {
         String jql = "issuetype=\"Release note ticket\" AND \"Release notes page Ids[Labels]\" in (\"" + pageId + "\")";
@@ -62,27 +64,44 @@ public class ReleaseNoteTicket {
     }
     
     /**
+     * Determines issue type of getReleaseFor() ticket, e.g. "Bug". null if issue type could not be determined.
+     * Access it using getReleaseFor_issueType()
+     * 
      * @param jira JiraCloudAccess
-     * @return issue type of getReleaseFor() ticket, e.g. "Bug", null if issue type could not be determined
      */
-    public String getReleaseFor_issueType(JiraCloudAccess jira) {
+    public void loadReleaseFor_issueType(JiraCloudAccess jira) {
+        releaseFor_issueType = null;
         String releaseFor = getReleaseFor();
         if (releaseFor == null || releaseFor.isBlank()) {
-            return null;
+            return;
         }
         List<IssueAccess> issues;
         try {
             issues = jira.loadIssues("key=" + releaseFor, i -> i);
         } catch (Exception e) { // typically "Error loading issues. Status is 400" if ticket isn't found
-            return null;
+            return;
         }
         if (issues.size() == 1) {
             try {
-                return issues.get(0).text("/fields/issuetype/name");
+                releaseFor_issueType = issues.get(0).text("/fields/issuetype/name");
+                if (releaseFor_issueType != null && releaseFor_issueType.isBlank()) {
+                    releaseFor_issueType = null;
+                }
             } catch (Exception ignore) {
             }
         }
-        return null;
+    }
+
+    public String getReleaseFor_issueType() {
+        return releaseFor_issueType;
+    }
+
+    public String getSort() {
+        return sort;
+    }
+
+    public void setSort(String sort) {
+        this.sort = sort;
     }
 
     public IssueAccess getIssueAccess() {
