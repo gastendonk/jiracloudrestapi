@@ -19,6 +19,10 @@ public class ReleaseNoteTicket {
         this.issue = issue;
     }
 
+    public IssueAccess getIssueAccess() {
+        return issue;
+    }
+
     /**
      * @return ticket number
      */
@@ -72,6 +76,14 @@ public class ReleaseNoteTicket {
         releaseFor_issueType = v;
     }
 
+    public String getCustomerTicketNumber() {
+        return customerTicketNumber == null ? getKey() : customerTicketNumber;
+    }
+
+    public void setCustomerTicketNumber(String customerTicketNumber) {
+        this.customerTicketNumber = customerTicketNumber;
+    }
+
     public String getSort() {
         return sort;
     }
@@ -80,14 +92,11 @@ public class ReleaseNoteTicket {
         this.sort = sort;
     }
 
-    public IssueAccess getIssueAccess() {
-        return issue;
-    }
-
     /**
      * <h1>customerTicketNumber</h1>
-     * <p>Für den gewählten Kunden darf die 'Customer project key' Ticketnummer aus dem "release for" verknüpften Ticket verwendet werden.
-     * Ansonsten die RNT Nr..</p>
+     * <p>For the selected customer, the 'Customer project key' ticket number from the "release for" linked ticket may be used.
+     * Otherwise the RNT number.</p>
+     * 
      * <h1>releaseFor_issueType</h1>
      * <p>Determines issue type of getReleaseFor() ticket, e.g. "Bug". null if issue type could not be determined.
      * Access it using getReleaseFor_issueType()</p>
@@ -96,7 +105,7 @@ public class ReleaseNoteTicket {
      * @param jira -
      */
     public void loadCustomerTicketNumberAndType(String project, JiraCloudAccess jira) {
-        customerTicketNumber = getKey();
+        customerTicketNumber = null;
         releaseFor_issueType = null;
         String releaseFor = getReleaseFor(); // Ticketnr. des über "release for" verknüpfte Ticket
         if (releaseFor == null || releaseFor.isBlank()) {
@@ -118,14 +127,6 @@ public class ReleaseNoteTicket {
             } catch (Exception ignore) {
             }
         }
-    }
-
-    public String getCustomerTicketNumber() {
-        return customerTicketNumber;
-    }
-
-    public void setCustomerTicketNumber(String customerTicketNumber) {
-        this.customerTicketNumber = customerTicketNumber;
     }
 
     /**
