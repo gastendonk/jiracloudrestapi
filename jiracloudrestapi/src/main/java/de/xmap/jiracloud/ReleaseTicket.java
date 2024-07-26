@@ -20,17 +20,25 @@ public class ReleaseTicket {
         return issue.text("/key");
     }
     
+    /**
+     * @return Main page ID
+     */
     public String getPageId() {
-        return issue.text("/fields/customfield_10065"); // Main page ID
+        return issue.text("/fields/customfield_10065");
     }
 
-    // falls das benötigt wird
+    /**
+     * @return 'Main page ID (EN)' is unused
+     */
     public String getPageIdEN() {
-        return issue.text("/fields/customfield_10066"); // Main page ID (EN)
+        return issue.text("/fields/customfield_10066"); 
     }
 
+    /**
+     * @return target release version
+     */
     public String getTargetVersion() {
-        return issue.text("/fields/customfield_10073/name"); // Target release version
+        return issue.text("/fields/customfield_10073/name");
     }
     
     public boolean isRelevant() {
