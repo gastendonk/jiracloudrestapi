@@ -9,7 +9,7 @@ public class ReleaseNoteTicket {
     
     public static List<ReleaseNoteTicket> load(JiraCloudAccess jira, String pageId) {
         String jql = "issuetype=\"Release note ticket\" AND \"Release notes page Ids[Labels]\" in (\"" + pageId + "\")";
-        return jira.loadIssues(jql, issue -> new ReleaseNoteTicket(issue));
+        return jira.loadIssues(jql, "&maxResults=500", issue -> new ReleaseNoteTicket(issue));
     }
     
     public ReleaseNoteTicket(IssueAccess issue) {
@@ -20,7 +20,11 @@ public class ReleaseNoteTicket {
      * @return ticket number
      */
     public String getKey() {
-        return issue.text("/key");
+        return issue.getKey();
+    }
+    
+    public String getTitle() {
+    	return issue.getTitle();
     }
 
     /**

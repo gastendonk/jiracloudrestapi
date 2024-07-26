@@ -8,8 +8,13 @@ public class ReleaseTicket {
     private final IssueAccess issue;
     
     public static List<ReleaseTicket> load(JiraCloudAccess jira, String project) {
-        String jql = "issuetype=\"Release\" and project=\"" + project + "\"";
-        return jira.loadIssues(jql, issue -> new ReleaseTicket(issue));
+		String jql;
+		if (project == null || project.isBlank()) {
+			jql = "issuetype=\"Release\"";
+		} else {
+			jql = "issuetype=\"Release\" and project=\"" + project + "\"";
+		}
+        return jira.loadIssues(jql, "&maxResults=500", issue -> new ReleaseTicket(issue));
     }
     
     public ReleaseTicket(IssueAccess issue) {
@@ -17,7 +22,11 @@ public class ReleaseTicket {
     }
 
     public String getKey() {
-        return issue.text("/key");
+        return issue.getKey();
+    }
+
+    public String getTitle() {
+    	return issue.getTitle();
     }
     
     /**

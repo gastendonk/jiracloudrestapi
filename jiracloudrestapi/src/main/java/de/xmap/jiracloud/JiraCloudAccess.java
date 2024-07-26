@@ -57,7 +57,7 @@ public class JiraCloudAccess {
         return loadIssues(jql, queryExtension, i -> i);
     }
 
-    private <T> List<T> loadIssues(String jql, String queryExtension, Function<IssueAccess, T> creator) {
+    public <T> List<T> loadIssues(String jql, String queryExtension, Function<IssueAccess, T> creator) {
         List<T> ret = new ArrayList<>();
         HttpResponse<JsonNode> response = get("/rest/api/3/search?jql=" + urlEncode(jql, "") + queryExtension);
         if (response.getStatus() >= 300) {
@@ -105,6 +105,20 @@ public class JiraCloudAccess {
         
         public IssueAccess(JSONObject issue) {
             jo = issue;
+        }
+        
+        /**
+         * @return ticket number
+         */
+        public String getKey() {
+            return text("/key");
+        }
+
+        /**
+         * @return ticket title (aka summary)
+         */
+        public String getTitle() {
+        	return text("/fields/summary");
         }
 
         /**
