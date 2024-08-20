@@ -73,6 +73,26 @@ public class JiraCloudAccess {
         return ret;
     }
     
+    public List<Changelog> loadHistory(String key) {
+        List<Changelog> ret = new ArrayList<>();
+        HttpResponse<JsonNode> response = get("/rest/api/3/issue/" + key + "/changelog");
+        if (response.getStatus() >= 300) {
+            throw new RuntimeException("Error loading issues. Status is " + response.getStatus());
+        }
+        JsonNode json = response.getBody();
+        if (debugMode) {
+            System.out.println(json.toPrettyString());
+        }
+        for (Object i : json.getObject().getJSONArray("values")) {
+            for (Object j : ((JSONObject) i).getJSONArray("items")) {
+                JSONObject d = (JSONObject) j;
+                ret.add(new Changelog((String) d.query("/field"), (String) d.query("/fromString"),
+                        (String) d.query("/toString")));
+            }
+        }
+        return ret;
+    }
+    
     /**
      * @param path -
      * @return JSON
@@ -119,6 +139,27 @@ public class JiraCloudAccess {
          */
         public String getTitle() {
         	return text("/fields/summary");
+        }
+        
+        /**
+         * @return e.g. "In Progress"
+         */
+        public String getStatus() {
+            return text("/fields/status/name");
+        }
+        
+        /**
+         * @return ticket type, e.g. Story
+         */
+        public String getType() {
+            return text("/fields/issuetype/name");
+        }
+        
+        /**
+         * @return name of person who creates the issue
+         */
+        public String getReporter() {
+            return text("/fields/reporter/displayName");
         }
 
         /**
