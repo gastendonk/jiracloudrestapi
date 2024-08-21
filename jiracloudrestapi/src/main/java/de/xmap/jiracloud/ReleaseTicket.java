@@ -14,7 +14,7 @@ public class ReleaseTicket {
 		} else {
 			jql = "issuetype=\"Release\" and project=\"" + project + "\"";
 		}
-        return jira.loadIssues(jql, "&maxResults=500", issue -> new ReleaseTicket(issue));
+        return jira.loadAllIssues(jql, "", issue -> new ReleaseTicket(issue));
     }
     
     public ReleaseTicket(IssueAccess issue) {

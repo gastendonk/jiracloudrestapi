@@ -49,15 +49,46 @@ public class JiraCloudAccess {
         auth = "Basic " + Base64.getEncoder().encodeToString((mail + ":" + token).getBytes());
     }
     
+    /**
+     * @deprecated use loadAllIssues() because it supports paging
+     */
     public <T> List<T> loadIssues(String jql, Function<IssueAccess, T> creator) {
         return loadIssues(jql, "", creator);
     }
 
+    /**
+     * @deprecated use loadAllIssues() because it supports paging
+     */
     public List<IssueAccess> loadIssues(String jql, String queryExtension) {
         return loadIssues(jql, queryExtension, i -> i);
     }
 
+    /**
+     * @param <T> -
+     * @param jql -
+     * @param queryExtension don't specify startAt nd maxResults !
+     * @param creator -
+     * @return issues
+     */
+    public <T> List<T> loadAllIssues(String jql, String queryExtension, Function<IssueAccess, T> creator) {
+        List<T> ret = new ArrayList<>(), list;
+        do {
+            list = _loadIssues(jql, queryExtension + "&startAt=" + ret.size() /* 0 based */
+                    + "&maxResults=100", // more than 100 are not possible
+                    creator);
+            ret.addAll(list);
+        } while (!list.isEmpty());
+        return ret;
+    }
+
+    /**
+     * @deprecated use loadAllIssues() because it supports paging
+     */
     public <T> List<T> loadIssues(String jql, String queryExtension, Function<IssueAccess, T> creator) {
+        return _loadIssues(jql, queryExtension, creator);
+    }
+    
+    private <T> List<T> _loadIssues(String jql, String queryExtension, Function<IssueAccess, T> creator) {
         List<T> ret = new ArrayList<>();
         HttpResponse<JsonNode> response = get("/rest/api/3/search?jql=" + urlEncode(jql, "") + queryExtension);
         if (response.getStatus() >= 300) {
@@ -74,8 +105,17 @@ public class JiraCloudAccess {
     }
     
     public List<Changelog> loadHistory(String key) {
+        List<Changelog> ret = new ArrayList<>(), list;
+        do {
+            list = _loadHistory(key, "&startAt=" + ret.size() /* 0 based */ + "&maxResults=100");
+            ret.addAll(list);
+        } while (!list.isEmpty());
+        return ret;
+    }
+    
+    private List<Changelog> _loadHistory(String key, String queryExtension) {
         List<Changelog> ret = new ArrayList<>();
-        HttpResponse<JsonNode> response = get("/rest/api/3/issue/" + key + "/changelog");
+        HttpResponse<JsonNode> response = get("/rest/api/3/issue/" + key + "/changelog" + queryExtension);
         if (response.getStatus() >= 300) {
             throw new RuntimeException("Error loading issues. Status is " + response.getStatus());
         }
@@ -98,6 +138,9 @@ public class JiraCloudAccess {
      * @return JSON
      */
     public HttpResponse<JsonNode> get(String path) {
+        if (debugMode) {
+            System.out.println(url + path);
+        }
         return Unirest.get(url + path).header("Accept", "application/json").header("Authorization", auth).asJson();
     }
 
@@ -196,7 +239,7 @@ public class JiraCloudAccess {
             String fieldname = path.substring(o + 1);
 
             String jql = "issue=\"" + text("/key") + "\"";
-            List<IssueAccess> r = loadIssues(jql, "&expand=renderedFields&fields=" + fieldname);
+            List<IssueAccess> r = loadAllIssues(jql, "&expand=renderedFields&fields=" + fieldname, i -> i);
             if (r.size() != 1) {
                 throw new RuntimeException("Expected 1 item for JQL " + jql);
             }

@@ -12,7 +12,7 @@ public class ReleaseNoteTicket {
     
     public static List<ReleaseNoteTicket> load(JiraCloudAccess jira, String pageId) {
         String jql = "issuetype=\"Release note ticket\" AND \"Release notes page Ids[Labels]\" in (\"" + pageId + "\")";
-        return jira.loadIssues(jql, "&maxResults=500", issue -> new ReleaseNoteTicket(issue));
+        return jira.loadAllIssues(jql, "", issue -> new ReleaseNoteTicket(issue));
     }
     
     public ReleaseNoteTicket(IssueAccess issue) {
@@ -113,7 +113,7 @@ public class ReleaseNoteTicket {
         }
         List<IssueAccess> issues;
         try {
-            issues = jira.loadIssues("key=\"" + releaseFor + "\"", i -> i);
+            issues = jira.loadAllIssues("key=\"" + releaseFor + "\"", "", i -> i);
         } catch (Exception e) {
             return;
         }

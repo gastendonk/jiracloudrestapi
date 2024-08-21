@@ -1,5 +1,8 @@
 package de.xmap.jiracloud;
 
+/**
+ * Entry of issue history
+ */
 public class Changelog {
     private final String field;
     private final String from;
