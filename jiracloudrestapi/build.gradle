@@ -4,6 +4,8 @@ plugins {
     id 'maven-publish'
 }
 
+group = 'com.github.gastendonk'
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
@@ -25,4 +27,15 @@ repositories {
 
 java {
     withSourcesJar()
+}
+
+publishing { // for jitpack.io
+    publications {
+        maven(MavenPublication) {
+            groupId project.group
+            artifactId project.name
+            version findProperty('version')
+            from components.java
+        }
+    }
 }
