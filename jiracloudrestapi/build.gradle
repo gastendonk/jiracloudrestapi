@@ -3,7 +3,6 @@ plugins {
     id 'eclipse'
 }
 
-// DO NOT USE FUCKING GRADLE 8 !  Jitpack does not work. :-(
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 compileJava.options.encoding = 'UTF-8'
