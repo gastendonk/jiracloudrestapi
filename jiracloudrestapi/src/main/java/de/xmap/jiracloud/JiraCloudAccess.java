@@ -505,8 +505,18 @@ public class JiraCloudAccess {
     }
     
     public List<FieldOption> loadFieldOptions(String customFieldID, String contextID) {
+        List<FieldOption> ret = new ArrayList<>(), list;
+        do {
+            list = _loadFieldOptions(customFieldID, contextID, "?startAt=" + ret.size());
+            ret.addAll(list);
+        } while (!list.isEmpty());
+        ret.sort((a, b) -> a.getValue().compareTo(b.getValue()));
+        return ret;
+    }
+
+    private List<FieldOption> _loadFieldOptions(String customFieldID, String contextID, String queryExtension) {
         List<FieldOption> ret = new ArrayList<>();
-        HttpResponse<JsonNode> response = get("/rest/api/3/field/customfield_" + customFieldID + "/context/" + contextID + "/option");
+        HttpResponse<JsonNode> response = get("/rest/api/3/field/customfield_" + customFieldID + "/context/" + contextID + "/option" + queryExtension);
         if (response.getStatus() >= 300) {
             throw new RuntimeException("Error loading field options. Status is " + response.getStatus());
         }
@@ -522,22 +532,28 @@ public class JiraCloudAccess {
             o.setDisabled(i.getBoolean("disabled"));
             ret.add(o);
         }
-        ret.sort((a, b) -> a.getValue().compareTo(b.getValue()));
         return ret;
     }
     
     public void createFieldOptions(String customFieldID, String contextID, List<String> options) {
         String m = url + "/rest/api/3/field/customfield_" + customFieldID + "/context/" + contextID + "/option";
-        String body = "{\"options\": [" + options.stream().map(o -> "{\"value\":\"" + o.replace("\"", "\\\"") + "\"}")
-                .collect(Collectors.joining(",")) + "]}";
-        HttpResponse<JsonNode> response = Unirest.post(m) //
-                .header("Accept", "application/json") //
-                .header("Content-type", "application/json") //
-                .header("Authorization", auth) //
-                .body(body) //
-                .asJson();
-        if (response.getStatus() >= 300) {
-            throw new RuntimeException("Error creating field options. Status is " + response.getStatus());
+        for (int i = 0; i < options.size(); i += 1000) { // paging with size 1000
+            int to = i + 1000;
+            if (to > options.size()) {
+                to = options.size();
+            }
+            String body = "{\"options\": [" + options.subList(i, to).stream()
+                    .map(o -> "{\"value\":\"" + o.replace("\"", "\\\"") + "\"}").collect(Collectors.joining(","))
+                    + "]}";
+            HttpResponse<JsonNode> response = Unirest.post(m) //
+                    .header("Accept", "application/json") //
+                    .header("Content-type", "application/json") //
+                    .header("Authorization", auth) //
+                    .body(body) //
+                    .asJson();
+            if (response.getStatus() >= 300) {
+                throw new RuntimeException("Error creating field options. Status is " + response.getStatus() + " (" + i + " to " + to + ")");
+            }
         }
     }
     
