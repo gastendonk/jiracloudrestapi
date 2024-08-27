@@ -4,17 +4,10 @@ plugins {
     id 'maven-publish'
 }
 
-group = 'com.github.gastendonk'
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-        vendor = JvmVendorSpec.ADOPTIUM
-    }
-}
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-}
+// DO NOT USE FUCKING GRADLE 8 !  Jitpack does not work. :-(
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+compileJava.options.encoding = 'UTF-8'
 
 dependencies {
     implementation 'com.konghq:unirest-java:3.14.5'
