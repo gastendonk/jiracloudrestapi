@@ -503,4 +503,70 @@ public class JiraCloudAccess {
     public void setDebugMode(boolean debugMode) {
         this.debugMode = debugMode;
     }
+    
+    public List<FieldOption> loadFieldOptions(String customFieldID, String contextID) {
+        List<FieldOption> ret = new ArrayList<>();
+        HttpResponse<JsonNode> response = get("/rest/api/3/field/customfield_" + customFieldID + "/context/" + contextID + "/option");
+        if (response.getStatus() >= 300) {
+            throw new RuntimeException("Error loading field options. Status is " + response.getStatus());
+        }
+        JsonNode json = response.getBody();
+        if (debugMode) {
+            System.out.println(json.toPrettyString());
+        }
+        for (Object i0 : json.getObject().getJSONArray("values")) {
+            JSONObject i = (JSONObject) i0; 
+            FieldOption o = new FieldOption();
+            o.setId(i.getString("id"));
+            o.setValue(i.getString("value"));
+            o.setDisabled(i.getBoolean("disabled"));
+            ret.add(o);
+        }
+        ret.sort((a, b) -> a.getValue().compareTo(b.getValue()));
+        return ret;
+    }
+    
+    public void createFieldOptions(String customFieldID, String contextID, List<String> options) {
+        String m = url + "/rest/api/3/field/customfield_" + customFieldID + "/context/" + contextID + "/option";
+        String body = "{\"options\": [" + options.stream().map(o -> "{\"value\":\"" + o.replace("\"", "\\\"") + "\"}")
+                .collect(Collectors.joining(",")) + "]}";
+        HttpResponse<JsonNode> response = Unirest.post(m) //
+                .header("Accept", "application/json") //
+                .header("Content-type", "application/json") //
+                .header("Authorization", auth) //
+                .body(body) //
+                .asJson();
+        if (response.getStatus() >= 300) {
+            throw new RuntimeException("Error creating field options. Status is " + response.getStatus());
+        }
+    }
+    
+    public void deleteFieldOption(String customFieldID, String contextID, String id) {
+        String m = url + "/rest/api/3/field/customfield_" + customFieldID + "/context/" + contextID + "/option/" + id;
+        HttpResponse<JsonNode> response = Unirest.delete(m) //
+                .header("Accept", "application/json") //
+                .header("Content-type", "application/json") //
+                .header("Authorization", auth) //
+                .asJson();
+        if (response.getStatus() >= 300) {
+            throw new RuntimeException("Error deleting field option " + id + ". Status is " + response.getStatus());
+        }
+    }
+    
+    public void disableFieldOptions(String customFieldID, String contextID, List<String> idList, boolean disabled) {
+        String m = url + "/rest/api/3/field/customfield_" + customFieldID + "/context/" + contextID + "/option";
+        String body = "{\"options\":[" //
+                + idList.stream().map(i -> "{\"disabled\":" + disabled + ",\"id\":\"" + i + "\"}")
+                        .collect(Collectors.joining(",")) //
+                + "]}";
+        HttpResponse<JsonNode> response = Unirest.put(m) //
+                .header("Accept", "application/json") //
+                .header("Content-type", "application/json") //
+                .header("Authorization", auth) //
+                .body(body) //
+                .asJson();
+        if (response.getStatus() >= 300) {
+            throw new RuntimeException("Error disabling field options. Status is " + response.getStatus());
+        }
+    }
 }
