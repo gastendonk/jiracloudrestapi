@@ -1,7 +1,6 @@
 plugins {
     id 'java-library'
     id 'eclipse'
-    id 'maven-publish'
 }
 
 // DO NOT USE FUCKING GRADLE 8 !  Jitpack does not work. :-(
@@ -20,15 +19,4 @@ repositories {
 
 java {
     withSourcesJar()
-}
-
-publishing { // for jitpack.io
-    publications {
-        maven(MavenPublication) {
-            groupId project.group
-            artifactId project.name
-            version findProperty('version')
-            from components.java
-        }
-    }
 }
