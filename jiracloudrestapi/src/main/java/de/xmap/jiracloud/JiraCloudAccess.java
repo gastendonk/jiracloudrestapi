@@ -31,6 +31,7 @@ public class JiraCloudAccess {
     private final String url;
     private final String auth;
     private boolean debugMode = false;
+    public static String cf_features = "customfield_10140";
     
     /**
      * @param mail mail address for Jira Cloud login
@@ -583,6 +584,32 @@ public class JiraCloudAccess {
                 .asJson();
         if (response.getStatus() >= 300) {
             throw new RuntimeException("Error disabling field options. Status is " + response.getStatus());
+        }
+    }
+    
+    /**
+     * @param ticketNr e.g. "XDEV-4711"
+     * @param featureNumbers set containing existing and new feature numbers, not null
+     */
+    public void saveFeatureNumbers(String ticketNr, Set<String> featureNumbers) {
+        String json = featureNumbers.stream().map(fn -> "{\"value\": \"" + fn + "\"}").collect(Collectors.joining(", "));
+        String body = "{\"fields\": { \"" + cf_features + "\": [" + json + "]}}";
+        HttpResponse<JsonNode> response = Unirest.put(url + "/rest/api/3/issue/" + ticketNr) //
+                .header("Accept", "application/json") //
+                .header("Content-type", "application/json") //
+                .header("Authorization", auth) //
+                .body(body)
+                .asJson();
+        if (response.getStatus() >= 300) {
+            String m = response.getBody().toPrettyString();
+            if (m.contains("Issue does not exist")) {
+                throw new RuntimeException("Issue does not exist: " + ticketNr);
+            } else if (m.contains("cannot be set")) {
+                throw new RuntimeException("Features field does not exist!");
+            }
+            System.err.println(body);
+            System.err.println(response.getBody().toPrettyString());
+            throw new RuntimeException("Can not save feature numbers. Status is " + response.getStatus() + ". See log.");
         }
     }
 }
