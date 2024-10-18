@@ -20,6 +20,8 @@ import de.xmap.jiracloud.Issue.FixVersion;
 import de.xmap.jiracloud.Issue.Project;
 import de.xmap.jiracloud.Issue.Subtask;
 import de.xmap.jiracloud.Issue.Version;
+import de.xmap.jiracloud.PageTitles.PageTitle;
+import de.xmap.jiracloud.Pages.Page;
 import de.xmap.jiracloud.Ticket2.Subticket;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
@@ -612,5 +614,70 @@ public class JiraCloudAccess {
             System.err.println(response.getBody().toPrettyString());
             throw new RuntimeException("Can not save feature numbers. Status is " + response.getStatus() + ". See log.");
         }
+    }
+
+    /**
+     * expensive
+     * @return all Confluence pages
+     */
+    public PageTitles loadAllConfluencePages() {
+        PageTitles ret = new PageTitles();
+        ret.setPageTitles(new ArrayList<>());
+        String path = "/wiki/api/v2/pages";
+        do {
+            HttpResponse<JsonNode> response = get(path);
+            if (response.getStatus() >= 300) {
+                throw new RuntimeException("Error loading Confluence pages. Status is " + response.getStatus());
+            }
+            Pages pages = new Gson().fromJson(response.getBody().toString(), Pages.class);
+            pages.getResults().stream().forEach(page -> {
+                PageTitle p = new PageTitle();
+                p.setId(page.getId());
+                p.setTiny(page.get_links().getTinyui());
+                p.setTitle(page.getTitle());
+                ret.getPageTitles().add(p);
+            });
+            path = pages.get_links().getNext();
+        } while (path != null);
+        return ret;
+    }
+    
+    public String getConfluencePageTitle(String pURL, List<PageTitle> pageTitles) {
+        if (isConfluenceUrlType1(pURL)) {
+            int o = pURL.indexOf("/pages/");
+            String id = pURL.substring(o + "/pages/".length());
+            o = id.indexOf("/");
+            id = id.substring(0, o);
+            HttpResponse<JsonNode> response = get("/wiki/api/v2/pages/" + id);
+            if (response.getStatus() == 404) {
+                return null; // page not found
+            } else if (response.getStatus() >= 300) {
+                throw new RuntimeException("Error loading Confluence page title. ID is " + id + ", status is " + response.getStatus());
+            }
+            Page page = new Gson().fromJson(response.getBody().toString(), Page.class);
+            return page.getTitle();
+        } else if (pURL.contains(".atlassian.net/wiki/x/")) {
+            int o = pURL.indexOf("/x/");
+            String id = pURL.substring(o);
+            for (PageTitle p : pageTitles) {
+                if (p.getTiny().equals(id)) {
+                    return p.getTitle();
+                }
+            }
+            return null;
+        } else {
+            throw new IllegalArgumentException("Unsupported URL");
+        }
+    }
+    
+    public static boolean isConfluenceUrl(String pURL) {
+        return pURL != null && pURL.startsWith("https://") && pURL.contains(".atlassian.net");
+    }
+    
+    public static boolean isConfluenceUrlType1(String pURL) {
+        if (pURL == null || !pURL.startsWith("https://")) {
+            throw new IllegalArgumentException(pURL);
+        }
+        return pURL.startsWith("https://") && pURL.contains(".atlassian.net/wiki/spaces") && pURL.contains("/pages/");
     }
 }
