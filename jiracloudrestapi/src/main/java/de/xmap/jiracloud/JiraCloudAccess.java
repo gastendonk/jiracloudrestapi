@@ -648,6 +648,13 @@ public class JiraCloudAccess {
             String id = pURL.substring(o + "/pages/".length());
             o = id.indexOf("/");
             id = id.substring(0, o);
+            if (pageTitles != null) {
+                for (PageTitle p : pageTitles) {
+                    if (p.getId().equals(id)) {
+                        return p.getTitle();
+                    }
+                }
+            }
             HttpResponse<JsonNode> response = get("/wiki/api/v2/pages/" + id);
             if (response.getStatus() == 404) {
                 return null; // page not found
@@ -657,6 +664,9 @@ public class JiraCloudAccess {
             Page page = new Gson().fromJson(response.getBody().toString(), Page.class);
             return page.getTitle();
         } else if (pURL.contains(".atlassian.net/wiki/x/")) {
+        	if (pageTitles == null) {
+        		throw new RuntimeException("pageTitles must not be null");
+        	}
             int o = pURL.indexOf("/x/");
             String id = pURL.substring(o);
             for (PageTitle p : pageTitles) {
