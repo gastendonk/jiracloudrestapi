@@ -612,7 +612,6 @@ public class JiraCloudAccess {
         }
     }
     
-    // TODO Ich sollte diese Lib so ändern, dass die Nutzer kein JSONObject und kein JSONArray (d.h. kein konghq:unirest-java) benötigen.
     /**
      * @param ticketNr e.g. "XDEV-4711"
      * @param featureNumbers set containing existing and new feature numbers, not null
