@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -206,6 +207,28 @@ public class JiraCloudAccess {
          */
         public String getReporter() {
             return text("/fields/reporter/displayName");
+        }
+        
+        public TreeSet<String> getLabels() {
+            TreeSet<String> labels = new TreeSet<>();
+            JSONArray array = (JSONArray) jo.getJSONObject("fields").optJSONArray("labels");
+            if (array != null) {
+                for (int i = 0; i < array.length(); i++) {
+                    labels.add(array.getString(i));
+                }
+            }
+            return labels;
+        }
+
+        public TreeSet<String> getFeatures() {
+            TreeSet<String> labels = new TreeSet<>();
+            JSONArray array = jo.getJSONObject("fields").optJSONArray(cf_features);
+            if (array != null) { // is null if field is empty
+                for (Object i : array) {
+                    labels.add((String) ((JSONObject) i).query("/value"));
+                }
+            }
+            return labels;
         }
 
         /**
