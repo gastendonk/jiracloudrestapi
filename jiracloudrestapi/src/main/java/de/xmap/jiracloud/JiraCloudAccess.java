@@ -211,7 +211,7 @@ public class JiraCloudAccess {
         
         public TreeSet<String> getLabels() {
             TreeSet<String> labels = new TreeSet<>();
-            JSONArray array = (JSONArray) jo.getJSONObject("fields").optJSONArray("labels");
+            JSONArray array = fields("labels");
             if (array != null) {
                 for (int i = 0; i < array.length(); i++) {
                     labels.add(array.getString(i));
@@ -220,15 +220,22 @@ public class JiraCloudAccess {
             return labels;
         }
 
+        /**
+         * @return feature numbers
+         */
         public TreeSet<String> getFeatures() {
-            TreeSet<String> labels = new TreeSet<>();
-            JSONArray array = jo.getJSONObject("fields").optJSONArray(cf_features);
+            TreeSet<String> featureNumbers = new TreeSet<>();
+            JSONArray array = fields(cf_features);
             if (array != null) { // is null if field is empty
                 for (Object i : array) {
-                    labels.add((String) ((JSONObject) i).query("/value"));
+                    featureNumbers.add((String) ((JSONObject) i).query("/value"));
                 }
             }
-            return labels;
+            return featureNumbers;
+        }
+        
+        private JSONArray fields(String name) {
+            return jo.getJSONObject("fields").optJSONArray(name);
         }
 
         /**
