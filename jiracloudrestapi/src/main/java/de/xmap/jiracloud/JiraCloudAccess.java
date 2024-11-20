@@ -615,7 +615,8 @@ public class JiraCloudAccess {
                 .body(body) //
                 .asJson();
         if (response.getStatus() >= 300) {
-            throw new RuntimeException("Error disabling field options. Status is " + response.getStatus());
+			throw new RuntimeException("Error " + (disabled ? "disabling" : "enabling") + " field options. Status is "
+					+ response.getStatus());
         }
     }
     
