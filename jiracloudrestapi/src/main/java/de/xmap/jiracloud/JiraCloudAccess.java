@@ -202,8 +202,21 @@ public class JiraCloudAccess {
             return text("/fields/issuetype/name");
         }
         
-        // TODO created
-        
+        /**
+         * @return e.g. "2024-09-25T15:03:45.400+0200"
+         */
+        public String getCreated() {
+        	return text("/fields/created");
+        }
+
+        /**
+         * DateTime of last change of ticket
+         * @return e.g. "2024-11-18T09:47:42.978+0100"
+         */
+        public String getUpdated() {
+        	return text("/fields/updated");
+        }
+
         /**
          * @return name of person who creates the issue
          */
@@ -325,20 +338,34 @@ public class JiraCloudAccess {
         }
         
         /**
-         * Get linked issues
-         * @param outwardType -
+         * @param outwardType e.g. "release for"
          * @return ticket numbers
          */
         public List<String> getLinkedOutwardIssue(String outwardType) {
-            List<String> ret = new ArrayList<>();
-            for (Object i : (JSONArray) jo.query("/fields/issuelinks")) {
-                JSONObject o = (JSONObject) i;
-                if (outwardType.equals(o.query("/type/outward"))) {
-                    ret.add((String) o.query("/outwardIssue/key"));
-                }
-            }
-            return ret;
+			return getLinkedIssue(outwardType, "/fields/issuelinks", "/type/outward", "/outwardIssue/key");
         }
+        
+        /**
+         * @param outwardType e.g. "release for"
+         * @return ticket numbers
+         */
+		public List<String> getLinkedInwardIssue(String outwardType) {
+			return getLinkedIssue(outwardType, "/fields/issuelinks", "/type/outward", "/inwardIssue/key");
+		}
+
+		protected List<String> getLinkedIssue(String outwardType, String expr1, String expr2, String expr3) {
+			List<String> ret = new ArrayList<>();
+			for (Object i : (JSONArray) jo.query(expr1)) {
+				JSONObject o = (JSONObject) i;
+				if (outwardType.equals(o.query(expr2))) {
+					try {
+						ret.add(((String) o.query(expr3)));
+					} catch (Exception ignore) {
+					}
+				}
+			}
+			return ret;
+		}
 
         public JSONObject getJSONObject() {
             return jo;
