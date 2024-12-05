@@ -31,11 +31,22 @@ import kong.unirest.json.JSONArray;
 import kong.unirest.json.JSONObject;
 
 public class JiraCloudAccess {
-    private final String url;
+	public static String cf_developmentDescription = "customfield_10053";
+	public static String cf_rnt_de = "customfield_10055";
+	public static String cf_rnt_en = "customfield_10056";
+	public static String cf_rns_de = "customfield_10057";
+	public static String cf_rns_en = "customfield_10058";
+	public static String cf_rnd_de = "customfield_10059";
+	public static String cf_rnd_en = "customfield_10060";
+	public static String cf_features = "customfield_10140";
+	public static String cf_changeNotesTitle = "customfield_10173";
+	public static String cf_changeNotesDescription = "customfield_10174";
+
+	private final String url;
     private final String auth;
     private boolean debugMode = false;
-    public static String cf_features = "customfield_10140";
-    
+    private boolean showAccess = false;
+	
     /**
      * @param mail mail address for Jira Cloud login
      * @param token token for Jira Cloud login
@@ -75,13 +86,12 @@ public class JiraCloudAccess {
      * @return issues
      */
     public <T> List<T> loadAllIssues(String jql, String queryExtension, Function<IssueAccess, T> creator) {
-        List<T> ret = new ArrayList<>(), list;
-        do {
-            list = _loadIssues(jql, queryExtension + "&startAt=" + ret.size() /* 0 based */
-                    + "&maxResults=100", // more than 100 are not possible
-                    creator);
-            ret.addAll(list);
-        } while (!list.isEmpty());
+        List<T> ret = new ArrayList<>();
+        Issues<T> issues = _loadIssues(jql, queryExtension + "&startAt=0&maxResults=100" /* more than 100 are not possible */, creator);
+        ret.addAll(issues.list);
+        while (ret.size() < issues.total) {
+            ret.addAll(_loadIssues(jql, queryExtension + "&startAt=" + ret.size() /* 0 based */ + "&maxResults=100", creator).list);
+        }
         return ret;
     }
 
@@ -89,11 +99,12 @@ public class JiraCloudAccess {
      * @deprecated use loadAllIssues() because it supports paging
      */
     public <T> List<T> loadIssues(String jql, String queryExtension, Function<IssueAccess, T> creator) {
-        return _loadIssues(jql, queryExtension, creator);
+        return _loadIssues(jql, queryExtension, creator).list;
     }
     
-    private <T> List<T> _loadIssues(String jql, String queryExtension, Function<IssueAccess, T> creator) {
-        List<T> ret = new ArrayList<>();
+    private <T> Issues<T> _loadIssues(String jql, String queryExtension, Function<IssueAccess, T> creator) {
+    	Issues<T> ret = new Issues<T>();
+    	long start = System.currentTimeMillis();
         HttpResponse<JsonNode> response = get("/rest/api/3/search?jql=" + urlEncode(jql, "") + queryExtension);
         if (response.getStatus() >= 300) {
             throw new RuntimeException("Error loading issues. Status is " + response.getStatus());
@@ -102,10 +113,22 @@ public class JiraCloudAccess {
         if (debugMode) {
             System.out.println(json.toPrettyString());
         }
+        ret.total = json.getObject().getInt("total");
         for (Object issue0 : json.getObject().getJSONArray("issues")) {
-            ret.add(creator.apply(new IssueAccess((JSONObject) issue0)));
+            ret.list.add(creator.apply(new IssueAccess((JSONObject) issue0)));
+        }
+
+        if (showAccess) {
+			long end = System.currentTimeMillis();
+			System.err.println("\t\t_loadIssues: " + (end - start) + "ms | " + jql + " | " + queryExtension + " | "
+					+ ret.list.size() + " | " + ret.total);
         }
         return ret;
+    }
+    
+    private static class Issues<T> {
+    	final List<T> list = new ArrayList<T>();
+    	int total;
     }
     
     public List<Changelog> loadHistory(String key) {
@@ -164,7 +187,11 @@ public class JiraCloudAccess {
         if (response.getStatus() >= 300) {
             throw new RuntimeException("Error loading image. Status is " + response.getStatus());
         }
-        return response.getBody();
+        byte[] ret = response.getBody();
+		if (showAccess) {
+        	System.err.println("\t\tloadImage " + src + ", " + ret.length);
+        }
+        return ret;
     }
 
     public class IssueAccess {
@@ -222,6 +249,10 @@ public class JiraCloudAccess {
          */
         public String getReporter() {
             return text("/fields/reporter/displayName");
+        }
+        
+        public String getChangeNotesTitle() {
+        	return text("/fields/" + cf_changeNotesTitle);
         }
         
         public TreeSet<String> getLabels() {
@@ -370,6 +401,10 @@ public class JiraCloudAccess {
         public JSONObject getJSONObject() {
             return jo;
         }
+
+		JiraCloudAccess jira() {
+			return JiraCloudAccess.this;
+		}
     }
     
     // =================================================
@@ -566,7 +601,15 @@ public class JiraCloudAccess {
         this.debugMode = debugMode;
     }
     
-    public List<FieldOption> loadFieldOptions(String customFieldID, String contextID) {
+    public boolean isShowAccess() {
+		return showAccess;
+	}
+
+	public void setShowAccess(boolean showAccess) {
+		this.showAccess = showAccess;
+	}
+
+	public List<FieldOption> loadFieldOptions(String customFieldID, String contextID) {
         List<FieldOption> ret = new ArrayList<>(), list;
         do {
             list = _loadFieldOptions(customFieldID, contextID, "?startAt=" + ret.size());
