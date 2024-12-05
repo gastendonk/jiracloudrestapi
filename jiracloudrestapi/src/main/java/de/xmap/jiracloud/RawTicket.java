@@ -50,25 +50,32 @@ public class RawTicket {
 
 	public static class StaticDocField {
 		private final boolean plainText;
-		/** plain text or HTML */
+		/** plain text or HTML, can be null */
 		private final String text;
-		/** null if plain text */
+		/** null if field does not exist or plain text */
 		private final Set<JiraImage> images;
 		
 		StaticDocField(String id, IssueAccess issue) {
 			JSONObject jo = issue.getJSONObject();
 			String path = "/fields/" + id;
 			
-			// is plain text?
-            JSONArray content = (JSONArray) jo.query(path + "/content");
-            plainText = content.length() == 1 && "paragraph".equals((String) jo.query(path + "/content/0/type"));
-
-			if (plainText) {
-				text = (String) jo.query(path + "/content/0/content/0/text");
+			// Does field exist?
+			if (jo.query(path) == null) {
+				plainText = true;
+				text = null;
 				images = null;
-			} else { // HTML
-	            text = issue.text("/renderedFields/" + id);
-	            images = extractImages(text);
+			} else {
+				// is plain text?
+	            JSONArray content = (JSONArray) jo.query(path + "/content");
+	            plainText = content.length() == 1 && "paragraph".equals((String) jo.query(path + "/content/0/type"));
+	
+				if (plainText) {
+					text = (String) jo.query(path + "/content/0/content/0/text");
+					images = null;
+				} else { // HTML
+		            text = issue.text("/renderedFields/" + id);
+		            images = extractImages(text);
+				}
 			}
 		}
 		
