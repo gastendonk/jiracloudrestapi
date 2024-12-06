@@ -11,11 +11,13 @@ public class RawRNTicket {
 	public static final String DE = "de";
 	public static final String EN = "en";
 	private final IssueAccess issue;
-	private final StaticDocFieldML rns = new StaticDocFieldML(JiraCloudAccess.cf_rns_de, JiraCloudAccess.cf_rns_en);
-	private final StaticDocFieldML rnd = new StaticDocFieldML(JiraCloudAccess.cf_rnd_de, JiraCloudAccess.cf_rnd_en);
+	private final StaticDocFieldML rns;
+	private final StaticDocFieldML rnd;
 	
 	public RawRNTicket(IssueAccess issue) {
 		this.issue = issue;
+		rns = new StaticDocFieldML(issue, JiraCloudAccess.cf_rns_de, JiraCloudAccess.cf_rns_en);
+		rnd = new StaticDocFieldML(issue, JiraCloudAccess.cf_rnd_de, JiraCloudAccess.cf_rnd_en);
 	}
 	
 	public static String fieldnamesForQueryExtension() {
@@ -68,7 +70,7 @@ public class RawRNTicket {
 	}
 	
 	public StaticDocField getDevelopmentDescription() {
-		return new StaticDocField(JiraCloudAccess.cf_developmentDescription, issue);
+		return new StaticDocField(issue, JiraCloudAccess.cf_developmentDescription);
 	}
 
 	/**
@@ -78,9 +80,9 @@ public class RawRNTicket {
 		private final StaticDocField de;
 		private final StaticDocField en;
 		
-		StaticDocFieldML(String deId, String enId) {
-			de = new StaticDocField(deId, issue);
-			en = new StaticDocField(enId, issue);
+		StaticDocFieldML(IssueAccess issue, String deId, String enId) {
+			de = new StaticDocField(issue, deId);
+			en = new StaticDocField(issue, enId);
 		}
 
 		public StaticDocField de() {

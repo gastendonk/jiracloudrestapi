@@ -22,8 +22,8 @@ public class RawTicket {
 	
 	public RawTicket(IssueAccess issue) {
 		this.issue = issue;
-		developmentDescription = new StaticDocField(JiraCloudAccess.cf_developmentDescription, issue);
-		changeNotesDescription = new StaticDocField(JiraCloudAccess.cf_changeNotesDescription, issue);
+		developmentDescription = new StaticDocField(issue, JiraCloudAccess.cf_developmentDescription);
+		changeNotesDescription = new StaticDocField(issue, JiraCloudAccess.cf_changeNotesDescription);
 	}
 	
 	public static String fieldnamesForQueryExtension() {
@@ -55,7 +55,7 @@ public class RawTicket {
 		/** null if field does not exist or plain text */
 		private final Set<JiraImage> images;
 		
-		StaticDocField(String id, IssueAccess issue) {
+		StaticDocField(IssueAccess issue, String id) {
 			JSONObject jo = issue.getJSONObject();
 			String path = "/fields/" + id;
 			
