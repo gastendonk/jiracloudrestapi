@@ -81,22 +81,24 @@ public class RawTicket {
 		
 		private static Set<JiraImage> extractImages(String html) {
 			Set<JiraImage> images = new HashSet<>();
-            int o = html.indexOf("<img");
-            while (o >= 0) {
-                int oo = html.indexOf(">", o);
-                if (oo >= 0) {
-                    int ooo = html.indexOf("src=\"", o);
-                    if (ooo >= 0 && ooo < oo) {
-                        ooo += "src=\"".length();
-                        int oooo = html.indexOf("\"", ooo);
-                        if (oooo > ooo) {
-                        	String src = html.substring(ooo, oooo);
-                            images.add(new JiraImage(src));
-                        }
-                    }
-                }
-                o = html.indexOf("<img", oo);
-            }
+			if (html != null) {
+	            int o = html.indexOf("<img");
+	            while (o >= 0) {
+	                int oo = html.indexOf(">", o);
+	                if (oo >= 0) {
+	                    int ooo = html.indexOf("src=\"", o);
+	                    if (ooo >= 0 && ooo < oo) {
+	                        ooo += "src=\"".length();
+	                        int oooo = html.indexOf("\"", ooo);
+	                        if (oooo > ooo) {
+	                        	String src = html.substring(ooo, oooo);
+	                            images.add(new JiraImage(src));
+	                        }
+	                    }
+	                }
+	                o = html.indexOf("<img", oo);
+	            }
+			}
             return images;
 		}
 		
