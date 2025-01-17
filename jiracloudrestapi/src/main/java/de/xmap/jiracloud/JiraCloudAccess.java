@@ -613,12 +613,18 @@ public class JiraCloudAccess {
 	}
 
 	public List<FieldOption> loadFieldOptions(String customFieldID, String contextID) {
+		return loadFieldOptions(customFieldID, contextID, true);
+	}
+
+	public List<FieldOption> loadFieldOptions(String customFieldID, String contextID, boolean sort) {
         List<FieldOption> ret = new ArrayList<>(), list;
         do {
             list = _loadFieldOptions(customFieldID, contextID, "?startAt=" + ret.size());
             ret.addAll(list);
         } while (!list.isEmpty());
-        ret.sort((a, b) -> a.getValue().compareTo(b.getValue()));
+        if (sort) {
+        	ret.sort((a, b) -> a.getValue().compareTo(b.getValue()));
+        }
         return ret;
     }
 
