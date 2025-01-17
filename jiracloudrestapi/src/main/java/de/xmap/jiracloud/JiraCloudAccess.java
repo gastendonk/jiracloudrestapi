@@ -38,9 +38,12 @@ public class JiraCloudAccess {
 	public static String cf_rns_en = "customfield_10058";
 	public static String cf_rnd_de = "customfield_10059";
 	public static String cf_rnd_en = "customfield_10060";
-	public static String cf_features = "customfield_10140";
+	public static String cf_featuresID = "10140";
+	public static String cf_features = "customfield_" + cf_featuresID;
 	public static String cf_changeNotesTitle = "customfield_10173";
 	public static String cf_changeNotesDescription = "customfield_10174";
+	/** context ID */
+	public static final String CID = "10287";
 
 	private final String url;
     private final String auth;
@@ -690,6 +693,33 @@ public class JiraCloudAccess {
 			throw new RuntimeException("Error " + (disabled ? "disabling" : "enabling") + " field options. Status is "
 					+ response.getStatus());
         }
+    }
+
+    /**
+     * Reorder field options
+     * @param customFieldID e.g. cf_featuresID
+     * @param contextID e.g. CID
+     * @param idList not empty, in target order
+     * @param actionFieldName "after" or "position" (without quotes)
+     * @param actionValue if after: option ID; if position: "First" or "Last"
+     */
+    public void moveFieldOptions(String customFieldID, String contextID, List<String> idList, String actionFieldName, String actionValue) {
+    	String m = url + "/rest/api/3/field/customfield_" + customFieldID + "/context/" + contextID + "/option/move";
+    	String body = "{ \"customFieldOptionIds\": [\n"
+    		+ idList.stream().map(id -> "\"" + id + "\"").collect(Collectors.joining(",\n"))
+    		+ "], \"" + actionFieldName + "\": \"" + actionValue + "\" }";
+    	if (debugMode) {
+    		System.out.println(m + "\n" + body);
+    	}
+    	HttpResponse<JsonNode> response = Unirest.put(m) //
+                .header("Accept", "application/json") //
+		        .header("Content-type", "application/json") //
+		        .header("Authorization", auth) //
+		        .body(body) //
+		        .asJson();
+    	if (response.getStatus() >= 300) {
+    		throw new RuntimeException("Error moving field options. Status is " + response.getStatus());
+    	}
     }
     
     /**
