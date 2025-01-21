@@ -55,7 +55,7 @@ public class RawTicket {
 		/** null if field does not exist or plain text */
 		private final Set<JiraImage> images;
 		
-		StaticDocField(IssueAccess issue, String id) {
+		public StaticDocField(IssueAccess issue, String id) {
 			JSONObject jo = issue.getJSONObject();
 			String path = "/fields/" + id;
 			
@@ -79,7 +79,7 @@ public class RawTicket {
 			}
 		}
 		
-		private static Set<JiraImage> extractImages(String html) {
+		public static Set<JiraImage> extractImages(String html) {
 			Set<JiraImage> images = new HashSet<>();
 			if (html != null) {
 	            int o = html.indexOf("<img");
@@ -92,7 +92,7 @@ public class RawTicket {
 	                        int oooo = html.indexOf("\"", ooo);
 	                        if (oooo > ooo) {
 	                        	String src = html.substring(ooo, oooo);
-	                            images.add(new JiraImage(src));
+	                            images.add(new JiraImageImpl(src));
 	                        }
 	                    }
 	                }
@@ -131,14 +131,30 @@ public class RawTicket {
 		}
 	}
 	
-	public static class JiraImage {
+	public interface JiraImage {
+		
+		String getSrc();
+		
+		String getFilename();
+		
+		/**
+		 * May be called before calling getImage().
+		 * @param jira -
+		 */
+		void loadFromJira(JiraCloudAccess jira);
+		
+		byte[] getImage();
+	}
+	
+	public static class JiraImageImpl implements JiraImage {
 		private final String src;
 		private byte[] image = null;
 		
-		JiraImage(String src) {
+		public JiraImageImpl(String src) {
 			this.src = src;
 		}
 		
+		@Override
 		public String getSrc() {
 			return src;
 		}
@@ -146,7 +162,16 @@ public class RawTicket {
 		/**
 		 * @return file name without path and with suffix
 		 */
+		@Override
 		public String getFilename() {
+			return filename(src);
+		}
+		
+		/**
+		 * @param src -
+		 * @return file name without path and with suffix
+		 */
+		public static String filename(String src) {
 			String ret = src.substring(src.lastIndexOf("/") + 1);
 			String sx = ret.toLowerCase();
 			// Man könnte den Suffix auch dem <img alt="..."> Attribut entnehmen.
@@ -156,12 +181,14 @@ public class RawTicket {
 			return ret;
 		}
 
+		@Override
 		public void loadFromJira(JiraCloudAccess jira) {
 			if (image == null) {
 				image = jira.loadImage(src);
 			}
 		}
 
+		@Override
 		public byte[] getImage() {
 			return image;
 		}
@@ -187,7 +214,7 @@ public class RawTicket {
 				return false;
 			if (getClass() != obj.getClass())
 				return false;
-			JiraImage other = (JiraImage) obj;
+			JiraImageImpl other = (JiraImageImpl) obj;
 			return Objects.equals(src, other.src);
 		}
 	}
