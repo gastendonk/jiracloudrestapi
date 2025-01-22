@@ -333,10 +333,12 @@ public class JiraCloudAccess {
          * @return true if plain text, false if HTML
          */
         public boolean isPlainText(String path) {
-            JSONArray content = (JSONArray) jo.query(path + "/content");
-            if (content.length() == 1) {
-                String type = (String) jo.query(path + "/content/0/type");
-                return "paragraph".equals(type);
+            JSONArray contents = (JSONArray) jo.query(path + "/content");
+            if (contents.length() == 1) {
+            	String pp = path + "/content/0/";
+            	JSONArray subContents = (JSONArray) jo.query(pp + "content");
+        		String type = (String) jo.query(pp + "type");
+            	return subContents.length() == 1 && "paragraph".equals(type);
             }
             return false;
         }
