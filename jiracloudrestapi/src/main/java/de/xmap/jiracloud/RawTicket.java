@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import de.xmap.jiracloud.JiraCloudAccess.IssueAccess;
-import kong.unirest.json.JSONArray;
 import kong.unirest.json.JSONObject;
 
 /**
@@ -58,24 +57,14 @@ public class RawTicket {
 		public StaticDocField(IssueAccess issue, String id) {
 			JSONObject jo = issue.getJSONObject();
 			String path = "/fields/" + id;
-			
-			// Does field exist?
-			if (jo.query(path) == null) {
+			if (jo.query(path) == null) { // Does field exist?
 				plainText = true;
 				text = null;
 				images = null;
 			} else {
-				// is plain text?
-	            JSONArray content = (JSONArray) jo.query(path + "/content");
-	            plainText = content.length() == 1 && "paragraph".equals((String) jo.query(path + "/content/0/type"));
-	
-				if (plainText) {
-					text = (String) jo.query(path + "/content/0/content/0/text");
-					images = null;
-				} else { // HTML
-		            text = issue.text("/renderedFields/" + id);
-		            images = extractImages(text);
-				}
+	            plainText = issue.isPlainText(path);
+	            text = issue.doc(path);
+	            images = plainText ? null : extractImages(text);
 			}
 		}
 		
