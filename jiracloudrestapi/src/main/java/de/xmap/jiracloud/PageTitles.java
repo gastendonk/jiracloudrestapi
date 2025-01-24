@@ -26,6 +26,8 @@ public class PageTitles {
             this.id = id;
         }
 
+        /** Eine Confluence Seite hat eine numerische ID (z.B. 218988551) und eine weitere
+            alphanumerische Kennung für den Permanentlink (sog. tiny, z.B. /x/B4ANDQ). */
         public String getTiny() {
             return tiny;
         }
