@@ -226,6 +226,14 @@ public class JiraCloudAccess {
         }
         
         /**
+         * @return e.g. "Done", can be empty but not null
+         */
+        public String getResolution() {
+        	String ret = text("/fields/resolution/name");
+        	return ret == null ? "" : ret;
+        }
+        
+        /**
          * @return ticket type, e.g. Story
          */
         public String getType() {
