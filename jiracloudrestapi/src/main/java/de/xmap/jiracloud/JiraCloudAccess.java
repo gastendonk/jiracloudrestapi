@@ -42,6 +42,7 @@ public class JiraCloudAccess {
 	public static String cf_features = "customfield_" + cf_featuresID;
 	public static String cf_changeNotesTitle = "customfield_10173";
 	public static String cf_changeNotesDescription = "customfield_10174";
+	public static String cf_minervaGtc = "customfield_10175";
 	/** context ID */
 	public static final String CID = "10287";
 
@@ -49,6 +50,7 @@ public class JiraCloudAccess {
     private final String auth;
     private boolean debugMode = false;
     private boolean showAccess = false;
+    public String lastError;
 	
     /**
      * @param mail mail address for Jira Cloud login
@@ -84,7 +86,7 @@ public class JiraCloudAccess {
     /**
      * @param <T> -
      * @param jql -
-     * @param queryExtension don't specify startAt nd maxResults !
+     * @param queryExtension don't specify startAt and maxResults !
      * @param creator -
      * @return issues
      */
@@ -264,6 +266,10 @@ public class JiraCloudAccess {
         
         public String getChangeNotesTitle() {
         	return text("/fields/" + cf_changeNotesTitle);
+        }
+        
+        public String getMinervaGTC() {
+        	return text("/fields/" + cf_minervaGtc);
         }
         
         public TreeSet<String> getLabels() {
@@ -465,8 +471,7 @@ public class JiraCloudAccess {
             // Continue with execution!
             return 1; // write Action "A.1" instead of "A"
         } else if (response.getStatus() >= 300) {
-            System.err.println(body);
-            System.err.println(response.getBody().toPrettyString());
+            lastError = body + "\n" + response.getBody().toPrettyString();
             throw new RuntimeException("Status is " + response.getStatus() + ". See log.");
         }
         return 0; // success
@@ -520,10 +525,10 @@ public class JiraCloudAccess {
         if (response.getStatus() >= 300) {
             String msg = response.getBody().toPrettyString();
             if (msg.contains("already exists")) {
-                System.out.println(msg);
+                lastError = msg;
                 return false;
             } else {
-                System.err.println(msg);
+                lastError = msg;
                 throw new RuntimeException("Status is " + response.getStatus() + ". See log.");
             }
         }        
@@ -538,7 +543,7 @@ public class JiraCloudAccess {
                 .header("Authorization", auth) //
                 .asJson();
         if (response.getStatus() >= 300) {
-            System.err.println(response.getBody().toPrettyString());
+            lastError = response.getBody().toPrettyString();
             throw new RuntimeException("Status is " + response.getStatus());
         }
         Project project = new Gson().fromJson(response.getBody().toString(), Project.class);
@@ -552,8 +557,7 @@ public class JiraCloudAccess {
                 .header("Authorization", auth) //
                 .asJson();
         if (response.getStatus() >= 300) {
-            System.err.println("Error loading ticket using " + u);
-            System.err.println(response.getBody().toPrettyString());
+            lastError = "Error loading ticket using " + u + "\n" + response.getBody().toPrettyString();
             throw new RuntimeException("Can not load Jira ticket. Status is " + response.getStatus());
         }
         Issue ticket = new Gson().fromJson(response.getBody().toString(), Issue.class);
@@ -585,7 +589,7 @@ public class JiraCloudAccess {
                 .header("Authorization", auth) //
                 .asJson();
         if (response.getStatus() >= 300) {
-            System.err.println(response.getBody().toPrettyString());
+            lastError = response.getBody().toPrettyString();
             throw new RuntimeException("Status is " + response.getStatus() + ". See log.");
         }
         java.lang.reflect.Type type = new TypeToken<ArrayList<Version>>() {}.getType();
@@ -601,7 +605,20 @@ public class JiraCloudAccess {
                 .body("{\"released\":true}") //
                 .asJson();
         if (response.getStatus() >= 300) {
-            System.err.println(response.getBody().toPrettyString());
+        	lastError = response.getBody().toPrettyString();
+            throw new RuntimeException("Status is " + response.getStatus() + ". See log.");
+        }
+    }
+    
+    public void setMinervaGtc(String ticketNumber, String content) {
+		HttpResponse<JsonNode> response = Unirest.put(url + "/rest/api/3/issue/" + ticketNumber)
+		        .header("Content-type", "application/json") //
+		        .header("Accept", "application/json") //
+		        .header("Authorization", auth) //
+		        .body("{\"fields\":{\"" + cf_minervaGtc + "\":\"" + content + "\"}}")
+		        .asJson();
+        if (response.getStatus() >= 300) {
+			lastError = response.getBody().toPrettyString();
             throw new RuntimeException("Status is " + response.getStatus() + ". See log.");
         }
     }
@@ -758,8 +775,7 @@ public class JiraCloudAccess {
             } else if (m.contains("cannot be set")) {
                 throw new RuntimeException("Features field does not exist!");
             }
-            System.err.println(body);
-            System.err.println(response.getBody().toPrettyString());
+            lastError = body + "\n" + response.getBody().toPrettyString();
             throw new RuntimeException("Can not save feature numbers. Status is " + response.getStatus() + ". See log.");
         }
     }

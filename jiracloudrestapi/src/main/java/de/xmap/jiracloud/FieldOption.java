@@ -29,7 +29,7 @@ public class FieldOption {
         this.disabled = disabled;
     }
 }
-/* Wenn ich die Contexts abfragen möchte:
+/* Wenn ich die Contexts abfragen moechte:
 get("/rest/api/3/field/customfield_10140/contexts");
   {
   "maxResults": 20,
