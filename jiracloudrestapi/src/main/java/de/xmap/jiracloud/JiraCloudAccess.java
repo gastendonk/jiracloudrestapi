@@ -619,7 +619,8 @@ public class JiraCloudAccess {
 		        .asJson();
         if (response.getStatus() >= 300) {
 			lastError = response.getBody().toPrettyString();
-            throw new RuntimeException("Status is " + response.getStatus() + ". See log.");
+			throw new RuntimeException(
+					"Status is " + response.getStatus() + " for ticket '" + ticketNumber + "'. See log.");
         }
     }
 
