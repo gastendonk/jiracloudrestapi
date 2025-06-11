@@ -812,7 +812,9 @@ public class JiraCloudAccess {
             int o = pURL.indexOf("/pages/");
             String id = pURL.substring(o + "/pages/".length());
             o = id.indexOf("/");
-            id = id.substring(0, o);
+			if (o >= 0) {
+				id = id.substring(0, o);
+			}
             if (pageTitles != null) {
                 for (PageTitle p : pageTitles) {
                     if (p.getId().equals(id)) {
