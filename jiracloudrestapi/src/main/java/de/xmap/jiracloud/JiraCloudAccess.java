@@ -22,7 +22,7 @@ import de.xmap.jiracloud.Issue.Project;
 import de.xmap.jiracloud.Issue.Subtask;
 import de.xmap.jiracloud.Issue.Version;
 import de.xmap.jiracloud.PageTitles.PageTitle;
-import de.xmap.jiracloud.Pages.Page;
+import de.xmap.jiracloud.Pages.ConfluencePage;
 import de.xmap.jiracloud.Ticket2.Subticket;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
@@ -828,7 +828,7 @@ public class JiraCloudAccess {
             } else if (response.getStatus() >= 300) {
                 throw new RuntimeException("Error loading Confluence page title. ID is " + id + ", status is " + response.getStatus());
             }
-            Page page = new Gson().fromJson(response.getBody().toString(), Page.class);
+            ConfluencePage page = new Gson().fromJson(response.getBody().toString(), ConfluencePage.class);
             return page.getTitle();
         } else if (pURL.contains(".atlassian.net/wiki/x/")) {
         	if (pageTitles == null) {

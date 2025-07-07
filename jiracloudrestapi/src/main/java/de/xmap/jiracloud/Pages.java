@@ -6,14 +6,14 @@ import java.util.List;
  * Confluence pages as JSON, internal classes
  */
 public class Pages {
-    private List<Page> results;
+    private List<ConfluencePage> results;
     private Next _links;
     
-    public List<Page> getResults() {
+    public List<ConfluencePage> getResults() {
         return results;
     }
 
-    public void setResults(List<Page> results) {
+    public void setResults(List<ConfluencePage> results) {
         this.results = results;
     }
     
@@ -25,7 +25,7 @@ public class Pages {
         this._links = _links;
     }
     
-    public static class Page {
+    public static class ConfluencePage {
         private String id;
         private String title;
         private Tiny _links;
