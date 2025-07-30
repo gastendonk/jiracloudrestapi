@@ -40,8 +40,7 @@ public class JiraCloudAccess {
 	public static String cf_rnd_en = "customfield_10060";
 	public static String cf_featuresID = "10140";
 	public static String cf_features = "customfield_" + cf_featuresID;
-	public static String cf_changeNotesTitle = "customfield_10173";
-	public static String cf_changeNotesDescription = "customfield_10174";
+	public static String cf_changeNotes = "customfield_10174";
 	public static String cf_minervaGtc = "customfield_10175";
 	/** context ID */
 	public static final String CID = "10287";
@@ -262,10 +261,6 @@ public class JiraCloudAccess {
          */
         public String getReporter() {
             return text("/fields/reporter/displayName");
-        }
-        
-        public String getChangeNotesTitle() {
-        	return text("/fields/" + cf_changeNotesTitle);
         }
         
         public String getMinervaGTC() {

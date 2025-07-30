@@ -22,11 +22,11 @@ public class RawTicket {
 	public RawTicket(IssueAccess issue) {
 		this.issue = issue;
 		developmentDescription = new StaticDocField(issue, JiraCloudAccess.cf_developmentDescription);
-		changeNotesDescription = new StaticDocField(issue, JiraCloudAccess.cf_changeNotesDescription);
+		changeNotesDescription = new StaticDocField(issue, JiraCloudAccess.cf_changeNotes);
 	}
 	
 	public static String fieldnamesForQueryExtension() {
-		return JiraCloudAccess.cf_developmentDescription + "," + JiraCloudAccess.cf_changeNotesTitle + "," + JiraCloudAccess.cf_changeNotesDescription;
+		return JiraCloudAccess.cf_developmentDescription + "," + JiraCloudAccess.cf_changeNotes;
 	}
 
 	public IssueAccess getIssue() {
