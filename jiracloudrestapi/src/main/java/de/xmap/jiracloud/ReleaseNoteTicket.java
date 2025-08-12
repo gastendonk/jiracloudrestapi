@@ -107,20 +107,20 @@ public class ReleaseNoteTicket {
     public void loadCustomerTicketNumberAndType(String project, JiraCloudAccess jira) {
         customerTicketNumber = null;
         releaseFor_issueType = null;
-        String releaseFor = getReleaseFor(); // Ticketnr. des über "release for" verknüpfte Ticket
+        String releaseFor = getReleaseFor(); // Ticketnr. des ueber "release for" verknuepften Tickets
         if (releaseFor == null || releaseFor.isBlank()) {
             return;
         }
         List<IssueAccess> issues;
         try {
-            issues = jira.loadAllIssues("key=\"" + releaseFor + "\"", "", i -> i);
+            issues = jira.loadAllIssues("key='" + releaseFor + "'", "", i -> i);
         } catch (Exception e) {
             return;
         }
         if (issues.size() == 1) {
             IssueAccess issue = issues.get(0);
             try {
-                if (project == null || project.equals(issue.text("/fields/project/key"))) { // Project übereinstimmend?
+                if (project == null || project.equals(issue.text("/fields/project/key"))) { // Project uebereinstimmend?
                     customerTicketNumber = issue.textne("/fields/customfield_10048"); // Customer project key
                 }
                 releaseFor_issueType = issue.textne("/fields/issuetype/name");

@@ -199,7 +199,8 @@ public class JiraCloudAccess {
     }
 
     public class IssueAccess {
-        private final JSONObject jo;
+        private JSONObject jo;
+        private long loadtime = System.currentTimeMillis();
         
         public IssueAccess(JSONObject issue) {
             jo = issue;
@@ -269,6 +270,10 @@ public class JiraCloudAccess {
         
         public TreeSet<String> getLabels() {
             return array("fields", "labels", "$i");
+        }
+        
+        public String getLabelsString() {
+        	return getLabels().stream().collect(Collectors.joining(", "));
         }
 
         public TreeSet<String> getFeatures() {
@@ -418,6 +423,19 @@ public class JiraCloudAccess {
 
 		JiraCloudAccess jira() {
 			return JiraCloudAccess.this;
+		}
+
+		public long getLoadtime() {
+			return loadtime;
+		}
+		
+		public boolean isUptodate(int minutes) {
+			return System.currentTimeMillis() - loadtime < minutes * 60 * 1000;
+		}
+		
+		public void updateFrom(IssueAccess other) {
+			jo = other.jo;
+			loadtime = other.loadtime;
 		}
     }
     
