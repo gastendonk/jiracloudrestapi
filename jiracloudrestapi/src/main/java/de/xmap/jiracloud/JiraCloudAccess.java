@@ -820,6 +820,7 @@ public class JiraCloudAccess {
         return ret;
     }
     
+    @Deprecated
     public String getConfluencePageTitle(String pURL, List<PageTitle> pageTitles) {
         if (isConfluenceUrlType1(pURL)) {
             int o = pURL.indexOf("/pages/");
@@ -858,6 +859,46 @@ public class JiraCloudAccess {
         } else {
             throw new IllegalArgumentException("Unsupported URL");
         }
+    }
+    
+    /**
+     * @param pURL -
+     * @return Confluence page ID or null
+     */
+    public static String getConfluencePageId1(String pURL) {
+    	String id = null;
+        if (isConfluenceUrlType1(pURL)) {
+            int o = pURL.indexOf("/pages/");
+            id = pURL.substring(o + "/pages/".length());
+            o = id.indexOf("/");
+			if (o >= 0) {
+				id = id.substring(0, o);
+			}
+        }
+        return id;
+    }
+
+    /**
+     * @param pURL -
+     * @return Confluence page tiny ID or null
+     */
+	public static String getConfluencePageId2(String pURL) {
+		String id = null;
+		if (pURL.contains(".atlassian.net/wiki/x/")) {
+			id = pURL.substring(pURL.indexOf("/x/"));
+		}
+		return id;
+	}
+
+    public String loadConfluencePageTitleById(String id) {
+        HttpResponse<JsonNode> response = get("/wiki/api/v2/pages/" + id);
+        if (response.getStatus() == 404) {
+            return null; // page not found
+        } else if (response.getStatus() >= 300) {
+            throw new RuntimeException("Error loading Confluence page title. ID is " + id + ", status is " + response.getStatus());
+        }
+        ConfluencePage page = new Gson().fromJson(response.getBody().toString(), ConfluencePage.class);
+        return page.getTitle();
     }
     
     public static boolean isConfluenceUrl(String pURL) {
