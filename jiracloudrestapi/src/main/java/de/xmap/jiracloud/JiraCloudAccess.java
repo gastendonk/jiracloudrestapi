@@ -264,6 +264,10 @@ public class JiraCloudAccess {
             return text("/fields/reporter/displayName");
         }
         
+    	public String getAssignee() {
+    		return text("/fields/assignee/displayName");
+    	}
+        
         public String getMinervaGTC() {
         	return text("/fields/" + cf_minervaGtc);
         }
