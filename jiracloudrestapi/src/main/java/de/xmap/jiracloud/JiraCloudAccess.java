@@ -911,8 +911,8 @@ public class JiraCloudAccess {
     
     public static boolean isConfluenceUrlType1(String pURL) {
         if (pURL == null || !pURL.startsWith("https://")) {
-            throw new IllegalArgumentException(pURL);
+            return false;
         }
-        return pURL.startsWith("https://") && pURL.contains(".atlassian.net/wiki/spaces") && pURL.contains("/pages/");
+        return pURL.contains(".atlassian.net/wiki/spaces") && pURL.contains("/pages/");
     }
 }
