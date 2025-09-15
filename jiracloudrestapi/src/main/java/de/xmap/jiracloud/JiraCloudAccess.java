@@ -69,55 +69,45 @@ public class JiraCloudAccess {
     }
     
     /**
-     * @deprecated use loadAllIssues() because it supports paging
-     */
-    public <T> List<T> loadIssues(String jql, Function<IssueAccess, T> creator) {
-        return loadIssues(jql, "", creator);
-    }
-
-    /**
-     * @deprecated use loadAllIssues() because it supports paging
-     */
-    public List<IssueAccess> loadIssues(String jql, String queryExtension) {
-        return loadIssues(jql, queryExtension, i -> i);
-    }
-
-    /**
      * @param <T> -
      * @param jql -
-     * @param queryExtension don't specify startAt and maxResults !
+     * @param queryExtension -
      * @param creator -
      * @return issues
      */
     public <T> List<T> loadAllIssues(String jql, String queryExtension, Function<IssueAccess, T> creator) {
         List<T> ret = new ArrayList<>();
-        Issues<T> issues = _loadIssues(jql, queryExtension + "&startAt=0&maxResults=100" /* more than 100 are not possible */, creator);
-        ret.addAll(issues.list);
-        while (ret.size() < issues.total) {
-            ret.addAll(_loadIssues(jql, queryExtension + "&startAt=" + ret.size() /* 0 based */ + "&maxResults=100", creator).list);
+        Issues<T> issues = null;
+        if (!queryExtension.contains("fields=")) {
+        	queryExtension += "&fields=*all";
         }
+		if (!queryExtension.contains("maxResults=")) {
+			queryExtension += "&maxResults=100";
+		}
+		do {
+			var paging = issues != null && issues.nextPageToken != null ? "&nextPageToken=" + issues.nextPageToken : "";
+			issues = _loadIssues(jql, queryExtension + paging, creator);
+			ret.addAll(issues.list);
+		} while (issues.nextPageToken != null);
         return ret;
     }
 
-    /**
-     * @deprecated use loadAllIssues() because it supports paging
-     */
-    public <T> List<T> loadIssues(String jql, String queryExtension, Function<IssueAccess, T> creator) {
-        return _loadIssues(jql, queryExtension, creator).list;
-    }
-    
     private <T> Issues<T> _loadIssues(String jql, String queryExtension, Function<IssueAccess, T> creator) {
     	Issues<T> ret = new Issues<T>();
     	long start = System.currentTimeMillis();
-        HttpResponse<JsonNode> response = get("/rest/api/3/search?jql=" + urlEncode(jql, "") + queryExtension);
+        HttpResponse<JsonNode> response = get("/rest/api/3/search/jql?jql=" + urlEncode(jql, "") + queryExtension);
         if (response.getStatus() >= 300) {
+        	lastError = response.getBody().toPrettyString();
             throw new RuntimeException("Error loading issues. Status is " + response.getStatus());
         }
         JsonNode json = response.getBody();
         if (debugMode) {
             System.out.println(json.toPrettyString());
         }
-        ret.total = json.getObject().getInt("total");
+        boolean isLastPage = json.getObject().optBoolean("isLast", true);
+        if (!isLastPage) {
+        	ret.nextPageToken = json.getObject().optString("nextPageToken", null);
+        }
         for (Object issue0 : json.getObject().getJSONArray("issues")) {
             ret.list.add(creator.apply(new IssueAccess((JSONObject) issue0)));
         }
@@ -125,14 +115,14 @@ public class JiraCloudAccess {
         if (showAccess) {
 			long end = System.currentTimeMillis();
 			System.err.println("\t\t_loadIssues: " + (end - start) + "ms | " + jql + " | " + queryExtension + " | "
-					+ ret.list.size() + " | " + ret.total);
+					+ ret.list.size() + " | " + ret.nextPageToken);
         }
         return ret;
     }
     
     private static class Issues<T> {
     	final List<T> list = new ArrayList<T>();
-    	int total;
+    	String nextPageToken;
     }
     
     public List<Changelog> loadHistory(String key) {
