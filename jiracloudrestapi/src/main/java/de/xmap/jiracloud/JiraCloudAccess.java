@@ -94,12 +94,29 @@ public class JiraCloudAccess {
 
     private <T> Issues<T> _loadIssues(String jql, String queryExtension, Function<IssueAccess, T> creator) {
     	Issues<T> ret = new Issues<T>();
+    	String path = "/rest/api/3/search/jql?jql=" + urlEncode(jql, "") + queryExtension;
     	long start = System.currentTimeMillis();
-        HttpResponse<JsonNode> response = get("/rest/api/3/search/jql?jql=" + urlEncode(jql, "") + queryExtension);
-        if (response.getStatus() >= 300) {
-        	lastError = response.getBody().toPrettyString();
-            throw new RuntimeException("Error loading issues. Status is " + response.getStatus());
-        }
+    	HttpResponse<JsonNode> response = null;
+    	long wait = 1;
+    	boolean again;
+    	do {
+    	    again = false;
+            response = get(path);
+            int status = response.getStatus();
+            if (status == 429/*rate limit*/ && wait < 10) {
+                System.err.println("_loadIssues(" + path + ") waiting " + wait + "\" because rate limit...");
+                try {
+                    Thread.sleep(wait * 1000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException("Error loading issues. Status is " + status + " (InterruptedException)");
+                }
+                wait *= 2; // 1 .. 2 .. 4 .. 8
+                again = true;
+            } else if (status >= 300) {
+            	lastError = response.getBody().toPrettyString();
+                throw new RuntimeException("Error loading issues. Status is " + status);
+            }
+    	} while (again);
         JsonNode json = response.getBody();
         if (debugMode) {
             System.out.println(json.toPrettyString());
