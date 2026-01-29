@@ -93,9 +93,9 @@ public class JiraCloudAccess {
     }
 
     private <T> Issues<T> _loadIssues(String jql, String queryExtension, Function<IssueAccess, T> creator) {
-    	Issues<T> ret = new Issues<T>();
-    	String path = "/rest/api/3/search/jql?jql=" + urlEncode(jql, "") + queryExtension;
-    	long start = System.currentTimeMillis();
+    	final Issues<T> ret = new Issues<T>();
+    	final String path = "/rest/api/3/search/jql?jql=" + urlEncode(jql, "") + queryExtension;
+    	final long start = System.currentTimeMillis();
     	HttpResponse<JsonNode> response = null;
     	long wait = 1;
     	boolean again;
@@ -104,7 +104,9 @@ public class JiraCloudAccess {
             response = get(path);
             int status = response.getStatus();
             if (status == 429/*rate limit*/ && wait < 10) {
-                System.err.println("_loadIssues(" + path + ") waiting " + wait + "\" because rate limit...");
+                System.err.println(
+                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) +
+                        " _loadIssues(" + path + ") waiting " + wait + "\" because rate limit...");
                 try {
                     Thread.sleep(wait * 1000);
                 } catch (InterruptedException e) {
