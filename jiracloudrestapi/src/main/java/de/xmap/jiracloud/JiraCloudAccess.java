@@ -196,7 +196,8 @@ public class JiraCloudAccess {
     }
 
     public byte[] loadImage(String src) {
-        HttpResponse<byte[]> response = Unirest.get(url + src).header("Authorization", auth).asBytes();
+        String imageUrl = src.contains("https://") ? src : (url + src);
+        HttpResponse<byte[]> response = Unirest.get(imageUrl).header("Authorization", auth).asBytes();
         if (response.getStatus() >= 300) {
             throw new RuntimeException("Error loading image. Status is " + response.getStatus());
         }
