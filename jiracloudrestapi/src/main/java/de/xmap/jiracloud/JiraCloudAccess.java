@@ -203,7 +203,7 @@ public class JiraCloudAccess {
         }
         byte[] ret = response.getBody();
 		if (showAccess) {
-        	System.err.println("\t\tloadImage " + src + ", " + ret.length);
+        	System.err.println("\t\tloadImage " + src + " [" + ret.length + " bytes]");
         }
         return ret;
     }
@@ -211,7 +211,8 @@ public class JiraCloudAccess {
     public class IssueAccess {
         private JSONObject jo;
         private long loadtime = System.currentTimeMillis();
-        
+//        private List<Attachment> attachments;
+
         public IssueAccess(JSONObject issue) {
             jo = issue;
         }
@@ -372,6 +373,7 @@ public class JiraCloudAccess {
         }
         
         /**
+         * alte unveraenderte images() Methode fuer Rueckwaertskompatibilitaet
          * @param path content field
          * @return Map(key=src, value=image data)
          */
@@ -401,6 +403,10 @@ public class JiraCloudAccess {
             return images;
         }
         
+        public ImagesResult images(String html, ImageLoader imageLoader) {
+            return imageLoader.images(html, JiraCloudAccess.this);
+        }
+
         /**
          * @param outwardType e.g. "release for"
          * @return ticket numbers
@@ -451,6 +457,33 @@ public class JiraCloudAccess {
 			jo = other.jo;
 			loadtime = other.loadtime;
 		}
+		
+        public List<Attachment> getAttachments() {
+//            if (attachments == null) {
+                List<Attachment> ret = new ArrayList<>();
+                JSONArray array = jo.getJSONObject("fields").optJSONArray("attachment");
+                if (array != null) { // is null if field is empty
+                    for (Object entry : array) {
+                        Attachment att = new Attachment();
+                        att.id = (String) ((JSONObject) entry).query("/id");
+                        att.filename = (String) ((JSONObject) entry).query("/filename");
+                        att.content = (String) ((JSONObject) entry).query("/content");
+                        att.mimeType = (String) ((JSONObject) entry).query("/mimeType");
+                        ret.add(att);
+                    }
+                }
+                return ret;
+//                attachments = ret;
+//            }
+//            return attachments;
+        }
+    }
+    
+    public static class Attachment {
+        public String id;
+        public String filename;
+        public String content;
+        public String mimeType;
     }
     
     // =================================================
