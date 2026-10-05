@@ -366,6 +366,9 @@ public class JiraCloudAccess {
             if (contents.length() == 1) {
             	String pp = path + "/content/0/";
             	JSONArray subContents = (JSONArray) jo.query(pp + "content");
+                if (subContents == null) {
+                    return false;
+                }
         		String type = (String) jo.query(pp + "type");
             	return subContents.length() == 1 && "paragraph".equals(type);
             }
