@@ -299,6 +299,9 @@ public class JiraCloudAccess {
             return array("fields", "fixVersions", "/name");
         }
 
+        /**
+         * skip RN: i.array("fields", "customfield_10061", "/value")
+         */
         public TreeSet<String> array(String fields, String name, String field) {
             TreeSet<String> ret = new TreeSet<>();
             JSONArray array = jo.getJSONObject(fields).optJSONArray(name);
