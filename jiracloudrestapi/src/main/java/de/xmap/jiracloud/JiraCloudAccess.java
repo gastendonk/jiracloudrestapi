@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -963,5 +964,48 @@ public class JiraCloudAccess {
             return false;
         }
         return pURL.contains(".atlassian.net/wiki/spaces") && pURL.contains("/pages/");
+    }
+
+    public void saveFields(String ticketNr, Collection<Field> fields) {
+        var body = fields2Json(fields);
+        if (debugMode) {
+            System.out.println(body);
+        }
+        HttpResponse<JsonNode> response = Unirest.put(url + "/rest/api/3/issue/" + ticketNr) //
+                .header("Accept", "application/json") //
+                .header("Content-type", "application/json") //
+                .header("Authorization", auth) //
+                .body(body)
+                .asJson();
+        if (response.getStatus() >= 300) {
+            String m = response.getBody().toPrettyString();
+            if (m.contains("Issue does not exist")) {
+                throw new RuntimeException("Issue does not exist: " + ticketNr);
+            } else if (m.contains("cannot be set")) {
+                throw new RuntimeException("Field does not exist!");
+            }
+            lastError = body + "\n" + response.getBody().toPrettyString();
+            throw new RuntimeException("Can not save ticket fields. Status is " + response.getStatus() + ". See log.");
+        }
+    }
+    
+    private String fields2Json(Collection<Field> fields) {
+        StringBuilder json = new StringBuilder();
+        json.append("{\"fields\": {");
+        boolean first = true;
+        for (Field f : fields) {
+            if (!first) {
+                json.append(", ");
+            }
+            first = false;
+            json.append("\"").append(f.getId()).append("\": ");
+            if (f.isPlainText()) {
+                json.append("\"").append(f.getText().replace("\"", "\\\"")).append("\"");
+            } else {
+                json.append(HtmlToAdfConverter.convertToAdf(f.getText()));
+            }
+        }
+        json.append("\n}}");
+        return json.toString();
     }
 }
